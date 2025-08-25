@@ -2,7 +2,7 @@ CLASS_NAMES: Car    # ['Car', 'Pedestrian', 'Cyclist', 'Van']
 
 DATA_CONFIG:
     DATASET: 'KittiTrackingDataset'
-    DATA_PATH: 'D:\1study\training'
+    DATA_PATH: '../data/kitti'
     DEBUG: False
     REF_COOR: 'camera'    # lidar / camera
     USE_Z_AXIS: False

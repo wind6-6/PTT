@@ -73,7 +73,7 @@ def boxes_to_corners_3d(boxes3d):
     return corners3d.numpy() if is_numpy else corners3d
 
 
-def visualize_pts(pts, fig=None, bgcolor=(0.0, 0.0, 0.0), fgcolor=(1.0, 1.0, 1.0),
+def visualize_pts(pts, fig=None, bgcolor=(1.0, 1.0, 1.0), fgcolor=(0.0, 0.0, 0.0),
                   show_intensity=False, size=(600, 600), draw_origin=True):
     if not isinstance(pts, np.ndarray):
         pts = pts.cpu().numpy()
@@ -88,7 +88,7 @@ def visualize_pts(pts, fig=None, bgcolor=(0.0, 0.0, 0.0), fgcolor=(1.0, 1.0, 1.0
         # mlab.colorbar(object=G, title="score\n", orientation='horizontal')
     else:
         G = mlab.points3d(pts[:, 0], pts[:, 1], pts[:, 2], mode='sphere',
-                          color=(0.5, 0.5, 0.5), scale_factor=0.04, figure=fig)
+                          colormap='gnuplot', scale_factor=0.04, figure=fig)
     if draw_origin:
         mlab.points3d(0, 0, 0, color=(1, 1, 1), mode='cube', scale_factor=0.05)
         mlab.plot3d([0, 3], [0, 0], [0, 0], color=(0, 0, 1), tube_radius=0.1)
@@ -177,39 +177,6 @@ def draw_scenes(points, gt_boxes=None, ref_boxes=None, ref_scores=None, ref_labe
     return fig
 
 
-def is_point_in_box(point, box_corners):
-    """
-    判断点是否在3D框内
-    :param point: (3,) 点坐标
-    :param box_corners: (8, 3) 框的8个角点
-    :return: bool 是否在框内
-    """
-    # 计算框的中心点和朝向
-    box_center = np.mean(box_corners, axis=0)
-    x_dir = box_corners[0] - box_corners[3]
-    x_dir = x_dir / np.linalg.norm(x_dir) if np.linalg.norm(x_dir) > 0 else np.array([1, 0, 0])
-    y_dir = box_corners[1] - box_corners[0]
-    y_dir = y_dir / np.linalg.norm(y_dir) if np.linalg.norm(y_dir) > 0 else np.array([0, 1, 0])
-    z_dir = np.cross(x_dir, y_dir)
-    z_dir = z_dir / np.linalg.norm(z_dir) if np.linalg.norm(z_dir) > 0 else np.array([0, 0, 1])
-
-    # 将点转换到框的局部坐标系
-    point_rel = point - box_center
-    x = np.dot(point_rel, x_dir)
-    y = np.dot(point_rel, y_dir)
-    z = np.dot(point_rel, z_dir)
-
-    # 计算框在局部坐标系中的尺寸
-    x_min = np.min(np.dot(box_corners - box_center, x_dir))
-    x_max = np.max(np.dot(box_corners - box_center, x_dir))
-    y_min = np.min(np.dot(box_corners - box_center, y_dir))
-    y_max = np.max(np.dot(box_corners - box_center, y_dir))
-    z_min = np.min(np.dot(box_corners - box_center, z_dir))
-    z_max = np.max(np.dot(box_corners - box_center, z_dir))
-
-    # 判断点是否在框内
-    return (x_min <= x <= x_max) and (y_min <= y <= y_max) and (z_min <= z <= z_max)
-
 def draw_scenes_tracking(points, gt_boxes=None, ref_boxes=None, ref_scores=None, ref_labels=None):
     if not isinstance(points, np.ndarray):
         points = points.cpu().numpy()
@@ -219,54 +186,18 @@ def draw_scenes_tracking(points, gt_boxes=None, ref_boxes=None, ref_scores=None,
     if ref_labels is not None and not isinstance(ref_labels, np.ndarray):
         ref_labels = ref_labels.cpu().numpy()
 
-    # 创建图形
-    fig = mlab.figure(figure=None, bgcolor=(0.0, 0.0, 0.0), fgcolor=(1.0, 1.0, 1.0), engine=None, size=(600, 600))
-
+    fig = visualize_pts(points, show_intensity=False)
     if gt_boxes is not None:
-        # 获取真实框的角点
         corners3d = np.expand_dims(gt_boxes.corners().transpose(), 0)
-        # 绘制真实框
-        fig = draw_corners3d(corners3d, fig=fig, color=(1, 0, 0), max_num=100, line_width=3)
+        fig = draw_corners3d(corners3d, fig=fig, color=(1, 0, 0), max_num=100)
 
-        # 分离框内和框外的点
-        box_corners = corners3d[0]
-        inside_points = []
-        outside_points = []
-        for point in points:
-            if is_point_in_box(point, box_corners):
-                inside_points.append(point)
-            else:
-                outside_points.append(point)
-
-        # 绘制框外的点（灰色）
-        if outside_points:
-            outside_points = np.array(outside_points)
-            mlab.points3d(outside_points[:, 0], outside_points[:, 1], outside_points[:, 2],
-                         mode='sphere', color=(0.5, 0.5, 0.5), scale_factor=0.04, figure=fig)
-
-        # 绘制框内的点（蓝色）
-        if inside_points:
-            inside_points = np.array(inside_points)
-            mlab.points3d(inside_points[:, 0], inside_points[:, 1], inside_points[:, 2],
-                         mode='sphere', color=(0, 0, 1), scale_factor=0.06, figure=fig)
-    else:
-        # 如果没有真实框，绘制所有点为灰色
-        mlab.points3d(points[:, 0], points[:, 1], points[:, 2],
-                     mode='sphere', color=(0.5, 0.5, 0.5), scale_factor=0.04, figure=fig)
-
-    # 绘制原点标记
-    mlab.points3d(0, 0, 0, color=(1, 1, 1), mode='cube', scale_factor=0.05, figure=fig)
-    mlab.plot3d([0, 3], [0, 0], [0, 0], color=(0, 0, 1), tube_radius=0.1, figure=fig)
-    mlab.plot3d([0, 0], [0, 3], [0, 0], color=(0, 1, 0), tube_radius=0.1, figure=fig)
-    mlab.plot3d([0, 0], [0, 0], [0, 3], color=(1, 0, 0), tube_radius=0.1, figure=fig)
-
-    # 绘制预测框
     if ref_boxes is not None:
         ref_corners3d = np.expand_dims(ref_boxes.corners().transpose(), 0)
-        # 预测框使用绿色
-        fig = draw_corners3d(ref_corners3d, fig=fig, color=(0, 0.8, 0), cls=ref_scores, max_num=100, line_width=3)
-
-    # 设置视角
+        if ref_labels is None:
+            fig = draw_corners3d(ref_corners3d, fig=fig, color=(0, 1, 0), cls=ref_scores, max_num=100)
+        else:
+            cur_color = tuple(box_colormap[1 % len(box_colormap)])
+            fig = draw_corners3d(ref_corners3d, fig=fig, color=cur_color, cls=ref_scores, max_num=100)
     mlab.view(azimuth=-179, elevation=54.0, distance=104.0, roll=90.0)
     return fig
 

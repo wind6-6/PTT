@@ -140,8 +140,8 @@ class TrackingEvaluator:
     def test_frame(self, frame):
         torch.cuda.synchronize()
         with self.timer.env("pre process"):
-            self.prepare_search(frame)  # 添加 debug=True
-            self.prepare_template(frame) 
+            self.prepare_search(frame)
+            self.prepare_template(frame)
 
         torch.cuda.synchronize()
         with self.timer.env("model inference"):
@@ -307,34 +307,7 @@ class TrackingEvaluator:
                          'fore_pts|{}|'.format(np.sum(self.ret_dict['model_label'] == 1)))
 
     def mayavi_show(self):
-        from tools.visual_utils.visualize_utils import draw_scenes_tracking
-        import mayavi.mlab as mlab
-        # 不需要显式导入 Engine，使用 mlab 内置函数获取引擎
-        
-        # 确保引擎已初始化
-        engine = mlab.get_engine()
-        if not engine.scenes:
-            mlab.figure()  # 创建新场景
-
-        # 获取当前帧的点云数据和框
-        points = self.ret_dict["this_PC"].points.T
-        gt_box = self.ret_dict["this_BB"]
-        pred_box = self.ret_dict["results_BBs"][-1]
-        
-        # 绘制场景
-        fig = draw_scenes_tracking(
-            points=points,
-            gt_boxes=gt_box,
-            ref_boxes=pred_box,
-            ref_scores=np.array([self.ret_dict['proposal_score']])
-        )
-        
-        try:
-            # 显示窗口并等待用户输入
-            mlab.figure(fig)  # 设置当前场景
-            input("Press Enter to continue...")  # 等待用户确认
-        except Exception as e:
-            print(f"可视化错误: {e}")
+        pass
 
 
 if __name__ == '__main__':

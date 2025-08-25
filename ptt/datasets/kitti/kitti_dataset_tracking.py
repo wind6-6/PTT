@@ -187,7 +187,7 @@ class KittiTrackingDataset(DatasetTemplate):
 
     def load_from_database(self):
         database_path = self.dataset_cfg.INFO_PATH[self.mode]
-        prefix = ['_'.join(self.class_names), self.dataset_cfg.REF_COOR, str(self.preload_offset)]
+        prefix = [self.class_names, self.dataset_cfg.REF_COOR, str(self.preload_offset)]
         database_path = '_'.join([database_path.split('_')[0]] + prefix + database_path.split('_')[1:])
         database_path = self.root_path / database_path
         if not database_path.exists():
@@ -284,7 +284,7 @@ class KittiTrackingDataset(DatasetTemplate):
                     "bbox_bottom", "height", "width", "length", "x", "y", "z",
                     "rotation_y"
                 ])
-            df = df[df["type"].isin(self.class_names)]
+            df = df[df["type"] == self.class_names]
             df.insert(loc=0, column="scene", value=scene)
             for track_id in df.track_id.unique():
                 df_tracklet = df[df["track_id"] == track_id]

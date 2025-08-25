@@ -3,10 +3,10 @@ CLASS_NAMES: Car    # ['Car', 'Pedestrian', 'Cyclist', 'Van']
 DATA_CONFIG:
     DATASET: 'KittiTrackingDataset'
     DATA_PATH: 'D:\1study'
-    DEBUG: True   # whether debug mode
+    DEBUG: False   # whether debug mode
     REF_COOR: 'lidar'   # lidar / camera
     USE_Z_AXIS: True   # whether use the z prediction of model
-    LOAD_FROM_DATABASE: False   # whether use the memory to save time
+    LOAD_FROM_DATABASE: True   # whether use the memory to save time
     LIDAR_CROP_OFFSET: 10.0   # the crop offset when training
     NUM_CANDIDATES_PERFRAME: 4   # generate random offsets per frame
     SEARCH_INPUT_SIZE: 1024   # the regularized points number of search area
@@ -122,7 +122,7 @@ MODEL:
             }
 
 OPTIMIZATION:
-    DEBUG: True   # whether debug mode
+    DEBUG: False   # whether debug mode
     BATCH_SIZE_PER_GPU: 48
     NUM_EPOCHS: 60
     # optimizer
@@ -144,7 +144,7 @@ TRAIN:
         START_EPOCH: 3
         INTERVAL: 1
 TEST:
-    VISUALIZE: True
+    VISUALIZE: False
     SAVE_PCD: False   # TODO check could use or not
     SHAPE_AGGREGATION: firstandprevious   # first/previous/firstandprevious/all
     REF_BOX: previous_result   # previous_result/previous_gt/current_gt
