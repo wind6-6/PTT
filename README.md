@@ -12,4 +12,4 @@ python test_tracking.py --cfg_file cfgs\kitti_models\ptt.yaml --ckpt D:\1study\P
 
 python test_tracking.py --cfg_file /home/lishengjie/study/fhao/PTT/tools/cfgs/kitti_models/ptt.yaml --ckpt /home/lishengjie/study/fhao/PTT/output/home/lishengjie/study/fhao/PTT/tools/cfgs/kitti_models/ptt/car_p2b/ckpt/checkpoint_epoch_60.pth
 
-windows环境ptt
+windows环境ptt linux fhptt
